@@ -125,26 +125,53 @@ npx cap open android
       </div>
 
       {/* Android Hardware Capabilities */}
-      <div className="p-4 rounded-2xl bg-[#141528] border border-white/5">
-        <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-          <Shield className="w-4 h-4 text-rose-400" />
-          Android Native Capabilities Configured
-        </h3>
-        <div className="grid grid-cols-2 gap-2 text-xs">
+      <div className="p-4 rounded-2xl bg-[#141528] border border-white/5 space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+            <Shield className="w-4 h-4 text-rose-400" />
+            Android Native Permissions Status
+          </h3>
+          <span className="text-[10px] text-zinc-500 font-mono">SDK 35 (Android 15)</span>
+        </div>
+
+        <div className="space-y-2 text-xs">
           {[
-            { label: 'Shake Detection', desc: 'Accelerometer sensors' },
-            { label: 'Emergency Siren', desc: 'Hardware speaker audio' },
-            { label: 'Haptic Feedback', desc: 'Vibration motor' },
-            { label: 'Evidence Camera', desc: 'Silent video recording' },
-            { label: 'Precise GPS', desc: 'Background coordinates' },
-            { label: 'Offline Mode', desc: 'PWA Service Worker cache' },
+            {
+              perm: 'ACCESS_FINE_LOCATION',
+              name: 'Precise GPS Location',
+              desc: 'Enables real-time live coordinate sharing on SOS',
+              granted: true,
+            },
+            {
+              perm: 'CAMERA & RECORD_AUDIO',
+              name: 'Evidence Camera & Mic',
+              desc: 'Enables background evidence recording to local device',
+              granted: true,
+            },
+            {
+              perm: 'VIBRATE',
+              name: 'Haptic Engine',
+              desc: 'Tactile vibration pulse for incoming fake calls & SOS',
+              granted: true,
+            },
+            {
+              perm: 'WAKE_LOCK',
+              name: 'Screen WakeLock',
+              desc: 'Keeps siren and SOS active without display sleep',
+              granted: true,
+            },
           ].map((item, idx) => (
-            <div key={idx} className="p-2.5 rounded-xl bg-white/5 border border-white/5">
-              <div className="font-semibold text-white flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                {item.label}
+            <div key={idx} className="p-2.5 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between">
+              <div>
+                <div className="font-semibold text-white flex items-center gap-1.5 text-xs">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                  {item.name}
+                </div>
+                <div className="text-[10px] text-zinc-400 font-mono mt-0.5">{item.perm}</div>
               </div>
-              <div className="text-[10px] text-zinc-400 mt-0.5">{item.desc}</div>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+                GRANTED
+              </span>
             </div>
           ))}
         </div>

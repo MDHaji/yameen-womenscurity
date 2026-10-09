@@ -16,6 +16,8 @@ import { useGeolocation } from './hooks/useGeolocation';
 import { usePWAInstall } from './hooks/usePWAInstall';
 import { Contact, AppSettings } from './types';
 import { Shield, EyeOff, Download, WifiOff } from 'lucide-react';
+import { AndroidFrame } from './components/AndroidFrame';
+import { AndroidSystemBar } from './components/AndroidSystemBar';
 import {
   testConnection,
   syncEmergencyAlertToFirebase,
@@ -267,153 +269,169 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0b16] text-[#eaeaea] flex flex-col font-sans select-none max-w-md mx-auto relative shadow-2xl overflow-x-hidden">
-      {/* Android System Status Bar */}
-      <AndroidStatusBar isEmergency={isEmergency} />
+    <AndroidFrame
+      isEmergency={isEmergency}
+      onVolumeSOS={handleTriggerSOS}
+      onVolumeSiren={() => setIsSirenOpen(true)}
+    >
+      <div className="flex-1 flex flex-col h-full bg-[#0a0b16] text-[#eaeaea] font-sans select-none overflow-hidden relative">
+        {/* Android System Status Bar */}
+        <AndroidStatusBar isEmergency={isEmergency} />
 
-      {/* Offline Toast */}
-      {!isOnline && (
-        <div className="bg-amber-600/90 text-white text-[11px] font-semibold py-1 px-4 flex items-center justify-center gap-1.5 shadow">
-          <WifiOff className="w-3.5 h-3.5" />
-          <span>Offline Mode — All SOS triggers &amp; local records are fully functional.</span>
-        </div>
-      )}
-
-      {/* App Header */}
-      <header className="px-4 py-3 bg-[#121427]/80 backdrop-blur-md border-b border-white/5 flex items-center justify-between sticky top-0 z-30">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-rose-600 via-rose-500 to-red-600 flex items-center justify-center shadow-lg shadow-rose-600/30 text-white">
-            <Shield className="w-5 h-5 fill-current" />
+        {/* Offline Toast */}
+        {!isOnline && (
+          <div className="bg-amber-600/90 text-white text-[11px] font-semibold py-1 px-4 flex items-center justify-center gap-1.5 shadow">
+            <WifiOff className="w-3.5 h-3.5" />
+            <span>Offline Mode — All SOS triggers &amp; local records are fully functional.</span>
           </div>
-          <div>
-            <h1 className="text-base font-extrabold tracking-tight text-white flex items-center gap-1.5">
-              SafeGuard
-              <span className="text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30">
-                APK
-              </span>
-            </h1>
-            <p className="text-[10px] text-zinc-400">Women Safety &amp; Emergency SOS</p>
-          </div>
-        </div>
+        )}
 
-        {/* Quick disguise button & PWA Install */}
-        <div className="flex items-center gap-1.5">
-          {isInstallable && !isInstalled && (
+        {/* App Header */}
+        <header className="px-4 py-3 bg-[#121427]/90 backdrop-blur-md border-b border-white/5 flex items-center justify-between shrink-0 z-30">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-rose-600 via-rose-500 to-red-600 flex items-center justify-center shadow-lg shadow-rose-600/30 text-white">
+              <Shield className="w-5 h-5 fill-current" />
+            </div>
+            <div>
+              <h1 className="text-base font-extrabold tracking-tight text-white flex items-center gap-1.5">
+                SafeGuard
+                <span className="text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 font-bold border border-rose-500/30">
+                  ANDROID
+                </span>
+              </h1>
+              <p className="text-[10px] text-zinc-400">Women Safety &amp; Emergency SOS</p>
+            </div>
+          </div>
+
+          {/* Quick disguise button & PWA Install */}
+          <div className="flex items-center gap-1.5">
+            {isInstallable && !isInstalled && (
+              <button
+                onClick={install}
+                className="p-2 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 text-xs font-semibold flex items-center gap-1 transition"
+                title="Install on Android"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Install</span>
+              </button>
+            )}
+
             <button
-              onClick={install}
-              className="p-2 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 text-xs font-semibold flex items-center gap-1 transition"
-              title="Install on Android"
+              onClick={() => setDiscreetMode('notes')}
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition"
+              title="Discreet Disguise Mode"
             >
-              <Download className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Install</span>
+              <EyeOff className="w-4 h-4" />
             </button>
+          </div>
+        </header>
+
+        {/* Screen Container */}
+        <main className="flex-1 p-4 overflow-y-auto">
+          {currentTab === 'sos' && (
+            <SOSScreen
+              isEmergency={isEmergency}
+              onTriggerSOS={handleTriggerSOS}
+              onCancelSOS={handleCancelSOS}
+              location={location}
+              contacts={contacts}
+              onOpenFakeCall={() => setIsFakeCallOpen(true)}
+              onOpenSiren={() => setIsSirenOpen(true)}
+              onOpenRecorder={() => {
+                setAutoRecordTrigger(false);
+                setIsRecorderOpen(true);
+              }}
+              onShareLocation={() => handleSendSOSMessage()}
+            />
           )}
 
-          <button
-            onClick={() => setDiscreetMode('notes')}
-            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white transition"
-            title="Discreet Disguise Mode"
-          >
-            <EyeOff className="w-4 h-4" />
-          </button>
-        </div>
-      </header>
+          {currentTab === 'contacts' && (
+            <ContactsScreen
+              contacts={contacts}
+              onUpdateContacts={setContacts}
+              onSendSOSMessage={handleSendSOSMessage}
+            />
+          )}
 
-      {/* Screen Container */}
-      <main className="flex-1 p-4 overflow-y-auto">
-        {currentTab === 'sos' && (
-          <SOSScreen
-            isEmergency={isEmergency}
-            onTriggerSOS={handleTriggerSOS}
-            onCancelSOS={handleCancelSOS}
-            location={location}
-            contacts={contacts}
-            onOpenFakeCall={() => setIsFakeCallOpen(true)}
-            onOpenSiren={() => setIsSirenOpen(true)}
-            onOpenRecorder={() => {
-              setAutoRecordTrigger(false);
-              setIsRecorderOpen(true);
-            }}
-            onShareLocation={() => handleSendSOSMessage()}
-          />
-        )}
+          {currentTab === 'radar' && (
+            <MapScreen
+              location={location}
+              loading={locLoading}
+              error={locError}
+              onRefresh={() => refreshLocation(true)}
+              getGoogleMapsUrl={getGoogleMapsUrl}
+            />
+          )}
 
-        {currentTab === 'contacts' && (
-          <ContactsScreen
-            contacts={contacts}
-            onUpdateContacts={setContacts}
-            onSendSOSMessage={handleSendSOSMessage}
-          />
-        )}
+          {currentTab === 'apk' && <AndroidApkHub />}
 
-        {currentTab === 'radar' && (
-          <MapScreen
-            location={location}
-            loading={locLoading}
-            error={locError}
-            onRefresh={() => refreshLocation(true)}
-            getGoogleMapsUrl={getGoogleMapsUrl}
-          />
-        )}
+          {currentTab === 'settings' && (
+            <SettingsScreen
+              settings={settings}
+              onUpdateSettings={setSettings}
+              onRequestPinModal={() => setIsPinModalOpen(true)}
+              onEnterDiscreet={(mode) => setDiscreetMode(mode)}
+            />
+          )}
+        </main>
 
-        {currentTab === 'apk' && <AndroidApkHub />}
-
-        {currentTab === 'settings' && (
-          <SettingsScreen
-            settings={settings}
-            onUpdateSettings={setSettings}
-            onRequestPinModal={() => setIsPinModalOpen(true)}
-            onEnterDiscreet={(mode) => setDiscreetMode(mode)}
-          />
-        )}
-      </main>
-
-      {/* Bottom Android Navigation */}
-      <BottomNav
-        currentTab={currentTab}
-        onChangeTab={setCurrentTab}
-        isEmergency={isEmergency}
-      />
-
-      {/* Global Interactive Overlays */}
-      <FakeCallModal
-        isOpen={isFakeCallOpen}
-        onClose={() => setIsFakeCallOpen(false)}
-      />
-
-      <SirenModal
-        isOpen={isSirenOpen}
-        onClose={() => setIsSirenOpen(false)}
-      />
-
-      <EvidenceRecorderModal
-        isOpen={isRecorderOpen}
-        onClose={() => {
-          setIsRecorderOpen(false);
-          setAutoRecordTrigger(false);
-        }}
-        autoStart={autoRecordTrigger}
-      />
-
-      {/* PIN Setup / Change Modal */}
-      {isPinModalOpen && (
-        <PinLockModal
-          isOpen={true}
-          expectedPin={settings.pinCode}
-          onSuccess={() => {
-            const nextPin = prompt('Enter new 4-digit PIN:', '1234');
-            if (nextPin && /^\d{4}$/.test(nextPin)) {
-              setSettings({ ...settings, pinCode: nextPin, pinLockEnabled: true });
-              alert('New PIN set successfully!');
-            }
-            setIsPinModalOpen(false);
-          }}
-          title="Security PIN Verification"
-          subtitle="Enter current PIN to update settings"
-          allowCancel={true}
-          onCancel={() => setIsPinModalOpen(false)}
+        {/* Bottom Android Navigation */}
+        <BottomNav
+          currentTab={currentTab}
+          onChangeTab={setCurrentTab}
+          isEmergency={isEmergency}
         />
-      )}
-    </div>
+
+        {/* Android 3-Button Navigation Bar */}
+        <AndroidSystemBar
+          currentTab={currentTab}
+          onChangeTab={setCurrentTab}
+          onBack={() => {
+            if (currentTab !== 'sos') setCurrentTab('sos');
+          }}
+          isEmergency={isEmergency}
+        />
+
+        {/* Global Interactive Overlays */}
+        <FakeCallModal
+          isOpen={isFakeCallOpen}
+          onClose={() => setIsFakeCallOpen(false)}
+        />
+
+        <SirenModal
+          isOpen={isSirenOpen}
+          onClose={() => setIsSirenOpen(false)}
+        />
+
+        <EvidenceRecorderModal
+          isOpen={isRecorderOpen}
+          onClose={() => {
+            setIsRecorderOpen(false);
+            setAutoRecordTrigger(false);
+          }}
+          autoStart={autoRecordTrigger}
+        />
+
+        {/* PIN Setup / Change Modal */}
+        {isPinModalOpen && (
+          <PinLockModal
+            isOpen={true}
+            expectedPin={settings.pinCode}
+            onSuccess={() => {
+              const nextPin = prompt('Enter new 4-digit PIN:', '1234');
+              if (nextPin && /^\d{4}$/.test(nextPin)) {
+                setSettings({ ...settings, pinCode: nextPin, pinLockEnabled: true });
+                alert('New PIN set successfully!');
+              }
+              setIsPinModalOpen(false);
+            }}
+            title="Security PIN Verification"
+            subtitle="Enter current PIN to update settings"
+            allowCancel={true}
+            onCancel={() => setIsPinModalOpen(false)}
+          />
+        )}
+      </div>
+    </AndroidFrame>
   );
 }
