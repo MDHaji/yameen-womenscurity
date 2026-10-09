@@ -1,0 +1,95 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net (Default-Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Connectivity Test
+    match /test/connection {
+      allow read: if true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Emergency Alerts Collection
+    match /emergency_alerts/{alertId} {
+      allow read: if isValidId(alertId) && (
+        !isSignedIn() || resource.data.userId == request.auth.uid
+      );
+
+      allow create: if isValidId(alertId) &&
+        incoming().keys().hasAll(['userId', 'status', 'lat', 'lng', 'createdAt']) &&
+        incoming().keys().hasOnly(['userId', 'status', 'lat', 'lng', 'accuracy', 'message', 'createdAt', 'resolvedAt']) &&
+        incoming().userId is string && incoming().userId.size() <= 128 &&
+        incoming().status in ['active', 'resolved'] &&
+        incoming().lat is number &&
+        incoming().lng is number &&
+        (!('message' in incoming()) || (incoming().message is string && incoming().message.size() <= 500)) &&
+        (!isSignedIn() || incoming().userId == request.auth.uid);
+
+      allow update: if isValidId(alertId) &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['status', 'resolvedAt']) &&
+        incoming().status in ['active', 'resolved'] &&
+        (!isSignedIn() || existing().userId == request.auth.uid);
+
+      allow delete: if isValidId(alertId) &&
+        isSignedIn() && existing().userId == request.auth.uid;
+    }
+
+    // Contacts Collection
+    match /contacts/{contactId} {
+      allow read: if isValidId(contactId) && (
+        !isSignedIn() || resource.data.userId == request.auth.uid
+      );
+
+      allow create: if isValidId(contactId) &&
+        incoming().keys().hasAll(['userId', 'name', 'phone']) &&
+        incoming().keys().hasOnly(['userId', 'name', 'phone', 'relation', 'isPrimary', 'updatedAt']) &&
+        incoming().name is string && incoming().name.size() <= 100 &&
+        incoming().phone is string && incoming().phone.size() <= 30 &&
+        (!isSignedIn() || incoming().userId == request.auth.uid);
+
+      allow update: if isValidId(contactId) &&
+        incoming().keys().hasOnly(['userId', 'name', 'phone', 'relation', 'isPrimary', 'updatedAt']) &&
+        incoming().name is string && incoming().name.size() <= 100 &&
+        incoming().phone is string && incoming().phone.size() <= 30 &&
+        (!isSignedIn() || existing().userId == request.auth.uid);
+
+      allow delete: if isValidId(contactId) &&
+        (!isSignedIn() || existing().userId == request.auth.uid);
+    }
+
+    // Safe Zones Collection
+    match /safe_zones/{zoneId} {
+      allow read: if isValidId(zoneId) && (
+        !isSignedIn() || resource.data.userId == request.auth.uid
+      );
+
+      allow create, update: if isValidId(zoneId) &&
+        incoming().keys().hasAll(['userId', 'name', 'lat', 'lng']) &&
+        incoming().keys().hasOnly(['userId', 'name', 'icon', 'lat', 'lng', 'radiusMeters']) &&
+        incoming().name is string && incoming().name.size() <= 100 &&
+        incoming().lat is number && incoming().lng is number &&
+        (!isSignedIn() || incoming().userId == request.auth.uid);
+
+      allow delete: if isValidId(zoneId) &&
+        (!isSignedIn() || existing().userId == request.auth.uid);
+    }
+  }
+}

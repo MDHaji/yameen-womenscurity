@@ -1,0 +1,6 @@
+{
+  "name": "SafeGuard - Women Safety & Emergency SOS",
+  "description": "Personal safety companion for Android with one-tap SOS, live GPS location sharing, discreet disguise mode, emergency siren, fake call, and evidence recording.",
+  "requestFramePermissions": ["camera", "microphone", "geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

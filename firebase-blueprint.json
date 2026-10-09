@@ -1,0 +1,116 @@
+{
+  "entities": {
+    "EmergencyAlert": {
+      "title": "Emergency Alert",
+      "description": "Records active and past emergency SOS events triggered by user",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "UID or client device identifier"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "resolved"]
+        },
+        "lat": {
+          "type": "number",
+          "description": "GPS Latitude"
+        },
+        "lng": {
+          "type": "number",
+          "description": "GPS Longitude"
+        },
+        "accuracy": {
+          "type": "number",
+          "description": "GPS Accuracy in meters"
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "resolvedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["userId", "status", "lat", "lng", "createdAt"]
+    },
+    "ContactRecord": {
+      "title": "Contact Record",
+      "description": "Emergency contact synced to cloud backup",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "phone": {
+          "type": "string",
+          "maxLength": 30
+        },
+        "relation": {
+          "type": "string",
+          "maxLength": 50
+        },
+        "isPrimary": {
+          "type": "boolean"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["userId", "name", "phone"]
+    },
+    "SafeZoneRecord": {
+      "title": "Safe Zone Record",
+      "description": "Geofencing safe zone definition",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "icon": {
+          "type": "string",
+          "maxLength": 10
+        },
+        "lat": {
+          "type": "number"
+        },
+        "lng": {
+          "type": "number"
+        },
+        "radiusMeters": {
+          "type": "number"
+        }
+      },
+      "required": ["userId", "name", "lat", "lng"]
+    }
+  },
+  "firestore": {
+    "/emergency_alerts/{alertId}": {
+      "schema": "EmergencyAlert",
+      "description": "Emergency SOS alert documents"
+    },
+    "/contacts/{contactId}": {
+      "schema": "ContactRecord",
+      "description": "User emergency contacts"
+    },
+    "/safe_zones/{zoneId}": {
+      "schema": "SafeZoneRecord",
+      "description": "Geofenced safe zones"
+    }
+  }
+}
